@@ -4,7 +4,7 @@
   "description": "contact form backend for my app",
   "main": "index.js",
   "scripts": {
-    "test": "npm run dev"
+    "dev": " nodemon --delay 2.0 -r dotenv/config --experimental-json-modules src/index.js"
   },
   "author": "zohaib",
   "license": "ISC",
@@ -12,6 +12,9 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "mongoose": "^8.9.6"
+    "fs": "^0.0.1-security",
+    "googleapis": "^144.0.0",
+    "mongoose": "^8.9.6",
+    "nodemon": "^3.1.9"
   }
 }

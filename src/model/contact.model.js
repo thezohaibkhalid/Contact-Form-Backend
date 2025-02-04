@@ -10,7 +10,7 @@ const contactSchema = new mongoose.Schema({
         type:email,
         required:true
     },
-    file:{
+    fileURL:{
         type:String
     },
     message:{
