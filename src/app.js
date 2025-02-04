@@ -1,6 +1,6 @@
-const express = require("express")
+ import express from "express";
+import contactRoute from "../routes/contact.routes'js";
 const app = express()
-const contactRoute = require("./routes/contact.routes");
 
 const cors = require("cors")
 app.use(cors());

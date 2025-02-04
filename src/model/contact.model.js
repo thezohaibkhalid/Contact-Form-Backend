@@ -1,5 +1,4 @@
-const {  mongoose } = require("mongoose");
-
+import mongoose from "mongoose"
 const contactSchema = new mongoose.Schema({
     name:{
         type:String, 
@@ -7,7 +6,7 @@ const contactSchema = new mongoose.Schema({
         minLen:[3, "Name must be at least 3 characters long"]
     }, 
     email:{
-        type:email,
+        type:String,
         required:true
     },
     fileURL:{
@@ -16,7 +15,18 @@ const contactSchema = new mongoose.Schema({
     message:{
         type:String, 
         required:true
+    }, 
+    createdAt:{
+        type:Date, 
+        default:Date.now
+    }, 
+    viewLink:{
+        type:String
+    }, 
+    downloadLink:{
+        type:String
     }
+
 })
 
 const contactModel = mongoose.model("contact", contactSchema);

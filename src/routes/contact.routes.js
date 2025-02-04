@@ -1,14 +1,13 @@
-const express = require("express"); 
+import express from "express";
+import mongoose from "mongoose";
+import contactModel from "../model/contact.model.js";
+import upload from "../middleware/multer.middleware.js";
+import contactController from "../controller/contact.controller.js";
+
 const router = express.Router();
-const mongoose = require("mongoose"); 
-const contactModel = require("../model/contact.model");
-const upload = require("../middleware/multer.middleware");
-const createContact = require("../controller/contact.controller")
-router.post('/contact', upload.fields([
-    {
-        name: "userFile", 
-        maxCount: 1
-    }
-]), createContact);
+
+
+
+router.post('/', upload.single(file), contactController.createContact);
 
 module.exports = router;
