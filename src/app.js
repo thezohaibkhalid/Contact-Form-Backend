@@ -1,5 +1,5 @@
  import express from "express";
-import contactRoute from "../routes/contact.routes'js";
+import contactRoute from "../routes/contact.routes.js";
 const app = express()
 
 const cors = require("cors")
@@ -13,4 +13,4 @@ app.get("/", (req, res)=>{
 
 app.use("/contact", contactRoute)
 
-module.export = app
+export default app;

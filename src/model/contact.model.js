@@ -30,3 +30,4 @@ const contactSchema = new mongoose.Schema({
 })
 
 const contactModel = mongoose.model("contact", contactSchema);
+export contactModel;
