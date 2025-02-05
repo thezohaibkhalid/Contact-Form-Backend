@@ -1,21 +1,18 @@
-
-import { contactCreate } from "../services/createContact.services.js";
-import google from "googleapis";
+import { google } from "googleapis";
 import fs from "fs";
-import pah from "path";
+import path from "path";
+import contactCreate from "../services/createContact.services.js";
 
-
- const oauth2Client = new google.auth.OAuth2(
+const oauth2Client = new google.auth.OAuth2(
   process.env.CLIENT_ID,
   process.env.CLIENT_SECRET,
   process.env.REDIRECT_URL
 );
 oauth2Client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
 
- const drive = google.drive({ version: "v3", auth: oauth2Client });
+const drive = google.drive({ version: "v3", auth: oauth2Client });
 
- 
-export default  CreateContact = async (req, res) => {
+const CreateContact = async (req, res) => {
   try {
     const { name, email, message } = req.body;
     const file = req.file; 
@@ -24,9 +21,9 @@ export default  CreateContact = async (req, res) => {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-     const fileMetadata = {
-      name: file.originalname,  
-      parents: [process.env.FOLDER_ID], 
+    const fileMetadata = {
+      name: file.originalname,
+      parents: [process.env.FOLDER_ID],
     };
     const media = {
       mimeType: file.mimetype,
@@ -39,19 +36,26 @@ export default  CreateContact = async (req, res) => {
       fields: "id, name, webViewLink, webContentLink",
     });
 
-     fs.unlinkSync(file.path);
+    fs.unlinkSync(file.path);
+
+    const viewLink = driveResponse.data.webViewLink;
+    const downloadLink = driveResponse.data.webContentLink;
+
+    // Call contactCreate function
+    await contactCreate(name, email, viewLink, downloadLink, message);
 
     return res.status(201).json({
       message: "File uploaded successfully",
       fileId: driveResponse.data.id,
       fileName: driveResponse.data.name,
-      viewLink: driveResponse.data.webViewLink,  
-      downloadLink: driveResponse.data.webContentLink, 
+      viewLink,
+      downloadLink,
     });
 
   } catch (error) {
     console.error("Error uploading file:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
-  contactCreate(name, email, viewLink, downloadLink, message)
 };
+
+export default CreateContact;

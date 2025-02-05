@@ -1,16 +1,22 @@
 import contactModel from "../model/contact.model.js";
 
-export default contactCreate = async (name, email , viewLink, downloadLink, message )=>{
-    try{
-        const contact= await user.Model.create({
+const contactCreate = async (req, res) => {
+    try {
+        const { name, email, viewLink, downloadLink, message } = req.body;  // Extract from req.body
+
+        const contact = await contactModel.create({
             name,
-            email, 
-            viewLink, 
-            downloadLink, 
+            email,
+            viewLink,
+            downloadLink,
             message,
-        })
-    }catch(error){
+        });
+
+        res.status(201).json({ message: "Contact created successfully", contact });
+    } catch (error) {
         console.error("Error creating contact:", error);
-        res.status(500).json({error:"Internal Server Error"});
+        res.status(500).json({ error: "Internal Server Error" });
     }
-}
+};
+
+export default contactCreate;
