@@ -1,16 +1,19 @@
- import express from "express";
-import contactRoute from "./routes/contact.routes.js"
-const app = express()
-
+import express from "express";
+import contactRoute from "./routes/contact.routes.js";
 import cors from "cors";
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({extended:true}))
+import bodyParser from "body-parser";
 
-app.get("/", (req, res)=>{
-    res.send("Hello Zohaib")
-})
+const app = express();
 
-app.use("/contact", contactRoute)
+ app.use(cors());
+
+ app.use(bodyParser.json({ limit: '15mb' }));   
+app.use(bodyParser.urlencoded({ limit: '15mb', extended: true }));  
+
+ app.get("/", (req, res) => {
+    res.send("Hello Zohaib");
+});
+
+ app.use("/contact", contactRoute);
 
 export default app;

@@ -6,7 +6,7 @@ import contactCreate from "../services/createContact.services.js";
 
 dotenv.config();
 
- const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
@@ -25,66 +25,84 @@ const drive = google.drive({ version: "v3", auth: oauth2Client });
 
 const CreateContact = async (req, res) => {
   try {
-    const { name, email, message } = req.body;
+    const { name, email, phoneNumber, message } = req.body;
     const file = req.file;
+    
+    let viewLink = "No file uploaded";
+    let downloadLink = "No file uploaded";
+    let fileName = "No file uploaded";
+    let driveResponse = null; 
 
-    if (!file) {
-      return res.status(400).json({ error: "No file uploaded" });
+    if (file) {
+      const maxSize = 15 * 1024 * 1024;  
+      if (file.size > maxSize) {
+        return res.status(400).json({ error: "File size exceeds the 15MB limit" });
+      }
+
+      const fileMetadata = {
+        name: file.originalname,
+        parents: [process.env.FOLDER_ID] 
+      };
+
+      const media = {
+        mimeType: file.mimetype,
+        body: fs.createReadStream(file.path),
+      };
+
+      driveResponse = await drive.files.create({
+        resource: fileMetadata,
+        media: media,
+        fields: "id, name, webViewLink, webContentLink",
+      });
+
+      fileName = driveResponse.data.name;
+      viewLink = driveResponse.data.webViewLink;
+      downloadLink = driveResponse.data.webContentLink;
+
+      
+      fs.unlink(file.path, (err) => {
+        if (err) console.error("Error deleting file:", err);
+      });
     }
 
-    const fileMetadata = {
-      name: file.originalname,
-      parents: [process.env.FOLDER_ID],
-    };
-
-    const media = {
-      mimeType: file.mimetype,
-      body: file.path ? fs.createReadStream(file.path) : Buffer.from(file.buffer),
-    };
-
-    const driveResponse = await drive.files.create({
-      resource: fileMetadata,
-      media: media,
-      fields: "id, name, webViewLink, webContentLink",
-    });
-
-    
     const mailOptions = {
-      from: {email},
-      to: process.env.NOTIFICATION_EMAIL, 
-      subject: 'New File Upload Notification',
+      from: process.env.EMAIL_USER,
+      to: process.env.NOTIFICATION_EMAIL,
+      subject: "A new Client from Portfolio",
       html: `
-        <h3>New File Uploaded to Google Drive</h3>
-        <p><strong>Uploader Name:</strong> ${name}</p>
-        <p><strong>Uploader Email:</strong> ${email}</p>
-        <p><strong>File Name:</strong> ${driveResponse.data.name}</p>
-        <p><strong>View Link:</strong> <a href="${driveResponse.data.webViewLink}">${driveResponse.data.webViewLink}</a></p>
-        <p><strong>Download Link:</strong> <a href="${driveResponse.data.webContentLink}">${driveResponse.data.webContentLink}</a></p>
-        <p><strong>Message:</strong> ${message || 'No message provided'}</p>
+        <div style="font-family: Arial, sans-serif; background-color: #1e1e1e; color: #ffffff; padding: 20px; border-radius: 8px;">
+          <h2 style="color: #00bcd4;">New Contact Submission</h2>
+          <div style="border-top: 2px solid #00bcd4; margin-bottom: 20px;"></div>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Phone Number:</strong> ${phoneNumber || "Not provided"}</p>
+          <p><strong>Message:</strong> ${message || "No message provided"}</p>
+          <p><strong>File Name:</strong> ${fileName}</p>
+          <p><strong>View Link:</strong> <a href="${viewLink}" style="color: #00bcd4;">${viewLink}</a></p>
+          <p><strong>Download Link:</strong> <a href="${downloadLink}" style="color: #00bcd4;">${downloadLink}</a></p>
+          <div style="border-top: 2px solid #00bcd4; margin-top: 20px;"></div>
+          <footer style="margin-top: 20px; text-align: center;">
+            <p style="font-size: 14px;">&copy; ${new Date().getFullYear()} Bitbuilders.tech. All rights reserved.</p>
+            <a href="https://bitbuilders.tech" style="color: #00bcd4; text-decoration: none;">Visit our website</a>
+          </footer>
+        </div>
       `
     };
 
-     await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions);
 
-    if (file.path && fs.existsSync(file.path)) {
-      fs.unlinkSync(file.path);
-    }
-
-    const viewLink = driveResponse.data.webViewLink;
-    const downloadLink = driveResponse.data.webContentLink;
-
-    await contactCreate(name, email, viewLink, downloadLink, message);
+    await contactCreate(name, email, phoneNumber, viewLink, downloadLink, message);
 
     return res.status(201).json({
-      message: "File uploaded successfully",
-      fileId: driveResponse.data.id,
-      fileName: driveResponse.data.name,
+      message: "Contact details submitted successfully",
+      fileId: driveResponse ? driveResponse.data.id : null,
+      fileName,
       viewLink,
       downloadLink,
     });
 
   } catch (error) {
-    console.error("Error uploading file:", error.message);
+    console.error("Error handling contact request:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };

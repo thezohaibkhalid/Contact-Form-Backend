@@ -1,10 +1,11 @@
 import contactModel from "../model/contact.model.js";
 
-const contactCreate = async (name, email, viewLink, downloadLink, message) => {
+const contactCreate = async (name, email, phoneNumber, viewLink, downloadLink, message) => {
     try {
         const contact = await contactModel.create({
             name,
             email,
+            phoneNumber,
             viewLink,
             downloadLink,
             message,
